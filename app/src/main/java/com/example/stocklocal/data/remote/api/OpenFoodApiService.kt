@@ -1,13 +1,13 @@
 package com.example.stocklocal.data.remote.api
 
-import com.example.stocklocal.data.remote.model.OpenFoodResponse
+import com.example.stocklocal.data.remote.model.SearchResponse
 import retrofit2.http.GET
-import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface OpenFoodApiService {
 
-    @GET("product/{productName}.json")
+    @GET("search.php")
     suspend fun searchProduct(
-        @Path("productName") productName: String
-    ): OpenFoodResponse
+        @Query("s") productName: String
+    ): SearchResponse
 }

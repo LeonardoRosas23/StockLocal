@@ -15,7 +15,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "https://world.openfoodfacts.org/api/v0/"
+    private const val BASE_URL = "https://www.themealdb.com/api/json/v1/1/"
     private const val APP_HEADER = "StockLocal-Android-App"
 
     @Provides
