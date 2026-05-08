@@ -15,4 +15,7 @@ interface MovementDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMovement(movement: Movement)
+
+    @Query("DELETE FROM movements")
+    suspend fun deleteAllMovements()
 }
