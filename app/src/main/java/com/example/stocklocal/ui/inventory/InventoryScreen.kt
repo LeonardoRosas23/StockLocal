@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 @Composable
 fun InventoryScreen(
     onNavigateBack: () -> Unit,
+    showLowStock: Boolean = false,
     viewModel: InventoryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -38,7 +39,7 @@ fun InventoryScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Inventario") },
+                title = { Text(if (showLowStock) "Stock bajo" else "Inventario") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Regresar")
@@ -76,6 +77,7 @@ fun InventoryScreen(
                 is InventoryUiState.Success -> {
                     val products = (uiState as InventoryUiState.Success).products
                         .filter { it.name.contains(searchQuery, ignoreCase = true) }
+                        .filter { if (showLowStock) it.quantity <= 5 else true }
 
                     if (products.isEmpty()) {
                         Text("No hay productos registrados")

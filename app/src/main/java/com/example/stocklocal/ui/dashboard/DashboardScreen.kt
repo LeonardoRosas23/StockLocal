@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Close
 @Composable
 fun DashboardScreen(
     onNavigateToInventory: () -> Unit,
+    onNavigateToLowStock: () -> Unit,
     onNavigateToMovements: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onExit: () -> Unit,
@@ -64,7 +65,7 @@ fun DashboardScreen(
                         modifier = Modifier.weight(1f),
                         title = "Stock bajo",
                         value = lowStockProducts.size.toString(),
-                        onClick = onNavigateToInventory
+                        onClick = onNavigateToLowStock
                     )
                 }
             }

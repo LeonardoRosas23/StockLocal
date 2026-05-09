@@ -8,39 +8,33 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.stocklocal.ui.settings.SettingsViewModel
-import com.example.stocklocal.ui.settings.SettingsState
-import com.example.stocklocal.data.repository.PreferencesRepository
-import androidx.compose.ui.text.style.TextAlign
 
 @Composable
 fun RegisterScreen(
     onRegistrationComplete: () -> Unit,
     onNavigateBack: (() -> Unit)? = null,
     hasExistingAccount: Boolean = false,
-    viewModel: SettingsViewModel = hiltViewModel()
+    viewModel: RegisterViewModel = hiltViewModel()
 ) {
     var businessName by remember { mutableStateOf("") }
     var currency by remember { mutableStateOf("MXN") }
     var pin by remember { mutableStateOf("") }
     var pinConfirm by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
-    val settingsState by viewModel.settingsState.collectAsState()
+    val registerState by viewModel.registerState.collectAsState()
 
-    LaunchedEffect(settingsState) {
-        when (settingsState) {
-            is SettingsState.Success -> {
-                val message = (settingsState as SettingsState.Success).message
-                if (message == "Registro completado") {
-                    onRegistrationComplete()
-                }
+    LaunchedEffect(registerState) {
+        when (val state = registerState) {
+            is RegisterState.Success -> {
                 viewModel.resetState()
+                onRegistrationComplete()
             }
-            is SettingsState.Error -> {
-                snackbarHostState.showSnackbar((settingsState as SettingsState.Error).message)
+            is RegisterState.Error -> {
+                snackbarHostState.showSnackbar(state.message)
                 viewModel.resetState()
             }
             else -> {}
@@ -133,9 +127,7 @@ fun RegisterScreen(
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(
                     onClick = {
-                        viewModel.saveBusinessName(businessName)
-                        viewModel.saveCurrency(currency)
-                        viewModel.savePinAndComplete(pin)
+                        viewModel.registerBusiness(businessName, currency, pin)
                     },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = businessName.isNotEmpty() && pin.length == 4 && pin == pinConfirm
