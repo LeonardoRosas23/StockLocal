@@ -22,6 +22,7 @@ class PreferencesRepository @Inject constructor(
         val PIN_KEY = stringPreferencesKey("user_pin")
         val BUSINESS_NAME_KEY = stringPreferencesKey("business_name")
         val CURRENCY_KEY = stringPreferencesKey("currency")
+
         val TOKEN_KEY = stringPreferencesKey("api_token")
     }
 
@@ -63,6 +64,7 @@ class PreferencesRepository @Inject constructor(
             preferences.clear()
         }
     }
+
     val apiToken: Flow<String> = context.dataStore.data
         .map { preferences -> preferences[TOKEN_KEY] ?: "" }
 
