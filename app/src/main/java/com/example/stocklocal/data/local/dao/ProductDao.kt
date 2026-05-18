@@ -13,7 +13,8 @@ interface ProductDao {
     @Query("SELECT * FROM products WHERE id = :id")
     suspend fun getProductById(id: Int): Product?
 
-    @Query("SELECT * FROM products WHERE quantity <= 5")
+    //Aquí se define el límite de stock
+    @Query("SELECT * FROM products WHERE quantity <= 15")
     fun getLowStockProducts(): Flow<List<Product>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

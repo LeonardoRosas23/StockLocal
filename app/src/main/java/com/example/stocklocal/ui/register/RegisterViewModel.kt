@@ -25,6 +25,7 @@ class RegisterViewModel @Inject constructor(
                 preferencesRepository.saveBusinessName(businessName)
                 preferencesRepository.saveCurrency(currency)
                 preferencesRepository.savePin(pin)
+                stockRepository.loginAndSaveToken()
                 _registerState.value = RegisterState.Success
             } catch (e: Exception) {
                 _registerState.value = RegisterState.Error("Error al registrar el negocio")

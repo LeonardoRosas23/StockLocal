@@ -20,6 +20,9 @@ class MovementViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<MovementUiState>(MovementUiState.Loading)
     val uiState: StateFlow<MovementUiState> = _uiState
 
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage
+
     init {
         loadMovements()
     }
@@ -35,6 +38,11 @@ class MovementViewModel @Inject constructor(
     fun registerMovement(product: Product, type: String, quantity: Int) {
         viewModelScope.launch {
             try {
+                if (type == "Salida" && quantity > product.quantity) {
+                    _errorMessage.value =
+                        "No hay suficiente stock. Disponible: ${product.quantity} unidades"
+                    return@launch
+                }
                 val movement = Movement(
                     productId = product.id,
                     productName = product.name,
@@ -42,7 +50,6 @@ class MovementViewModel @Inject constructor(
                     quantity = quantity
                 )
                 repository.insertMovement(movement)
-
                 val newQuantity = if (type == "Entrada") {
                     product.quantity + quantity
                 } else {
@@ -50,9 +57,13 @@ class MovementViewModel @Inject constructor(
                 }
                 repository.updateProduct(product.copy(quantity = newQuantity))
             } catch (e: Exception) {
-                _uiState.value = MovementUiState.Error("Error al registrar movimiento")
+                _errorMessage.value = "Error al registrar movimiento"
             }
         }
+    }
+
+    fun clearError() {
+        _errorMessage.value = null
     }
 }
 
