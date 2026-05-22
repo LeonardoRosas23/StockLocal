@@ -7,6 +7,7 @@ import com.example.stocklocal.data.repository.StockRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,9 +23,19 @@ class RegisterViewModel @Inject constructor(
     fun registerBusiness(businessName: String, currency: String, pin: String) {
         viewModelScope.launch {
             try {
+                val existingPin = preferencesRepository.userPin.first()
+
+                if (existingPin.isNotBlank()) {
+                    _registerState.value = RegisterState.Error(
+                        "Ya existe una cuenta registrada en este dispositivo."
+                    )
+                    return@launch
+                }
+
                 preferencesRepository.saveBusinessName(businessName)
                 preferencesRepository.saveCurrency(currency)
                 preferencesRepository.savePin(pin)
+                stockRepository.loginAndSaveToken()
                 _registerState.value = RegisterState.Success
             } catch (e: Exception) {
                 _registerState.value = RegisterState.Error("Error al registrar el negocio")

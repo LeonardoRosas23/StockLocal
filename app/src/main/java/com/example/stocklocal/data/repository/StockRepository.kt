@@ -8,12 +8,15 @@ import com.example.stocklocal.data.remote.api.OpenFoodApiService
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.example.stocklocal.di.TokenProvider
 
 @Singleton
 class StockRepository @Inject constructor(
     private val productDao: ProductDao,
     private val movementDao: MovementDao,
-    private val apiService: OpenFoodApiService
+    private val apiService: OpenFoodApiService,
+    private val preferencesRepository: PreferencesRepository,
+    private val tokenProvider: TokenProvider
 ) {
     // Productos
     fun getAllProducts(): Flow<List<Product>> = productDao.getAllProducts()
@@ -37,11 +40,29 @@ class StockRepository @Inject constructor(
     suspend fun insertMovement(movement: Movement) = movementDao.insertMovement(movement)
 
     // API
+    suspend fun loginAndSaveToken(): Boolean {
+        return try {
+            val response = apiService.login(
+                com.example.stocklocal.data.remote.model.LoginRequest(
+                    username = "emilys",
+                    password = "emilyspass"
+                )
+            )
+            val token = response.accessToken
+            if (token != null) {
+                preferencesRepository.saveToken(token)
+                tokenProvider.token = token
+                true
+            } else false
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     suspend fun searchProductOnline(productName: String): String? {
         return try {
             val response = apiService.searchProduct(productName)
-            val firstProduct = response.products?.firstOrNull()
-            firstProduct?.category?.takeIf { it.isNotEmpty() }
+            response.products?.firstOrNull()?.category
         } catch (e: Exception) {
             null
         }

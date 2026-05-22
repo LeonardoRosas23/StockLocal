@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation("io.github.vanpra.compose-material-dialogs:datetime:0.9.0")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.51.1")

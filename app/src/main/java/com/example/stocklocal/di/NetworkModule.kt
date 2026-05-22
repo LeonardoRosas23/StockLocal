@@ -15,22 +15,29 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "https://www.themealdb.com/api/json/v1/1/"
+    private const val BASE_URL = "https://dummyjson.com/"
     private const val APP_HEADER = "StockLocal-Android-App"
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideTokenProvider(): TokenProvider = TokenProvider()
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(tokenProvider: TokenProvider): OkHttpClient {
         val logging = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
         return OkHttpClient.Builder()
             .addInterceptor(logging)
             .addInterceptor { chain ->
-                val request = chain.request().newBuilder()
+                val requestBuilder = chain.request().newBuilder()
                     .addHeader("User-Agent", APP_HEADER)
-                    .build()
-                chain.proceed(request)
+                val token = tokenProvider.token
+                if (token.isNotEmpty()) {
+                    requestBuilder.addHeader("Authorization", "Bearer $token")
+                }
+                chain.proceed(requestBuilder.build())
             }
             .build()
     }
@@ -50,4 +57,8 @@ object NetworkModule {
     fun provideOpenFoodApiService(retrofit: Retrofit): OpenFoodApiService {
         return retrofit.create(OpenFoodApiService::class.java)
     }
+}
+
+class TokenProvider {
+    var token: String = ""
 }

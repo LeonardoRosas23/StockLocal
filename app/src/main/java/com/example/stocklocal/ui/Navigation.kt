@@ -34,18 +34,14 @@ fun StockLocalNavigation(
     preferencesRepository: PreferencesRepository
 ) {
     val navController = rememberNavController()
-    var startDestination by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        val pin = preferencesRepository.userPin.first()
-        startDestination = if (pin.isEmpty()) {
-            "${Routes.REGISTER}/false"
-        } else {
-            Routes.LOGIN
-        }
+        preferencesRepository.userPin.first()
+        isLoading = false
     }
 
-    if (startDestination == null) {
+    if (isLoading) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -57,7 +53,7 @@ fun StockLocalNavigation(
 
     NavHost(
         navController = navController,
-        startDestination = startDestination!!
+        startDestination = Routes.LOGIN
     ) {
         composable(
             route = "${Routes.REGISTER}/{hasAccount}",
@@ -68,35 +64,43 @@ fun StockLocalNavigation(
             )
         ) { backStackEntry ->
             val hasAccount = backStackEntry.arguments?.getBoolean("hasAccount") ?: false
+
             RegisterScreen(
                 onRegistrationComplete = {
                     navController.navigate(Routes.LOGIN) {
-                        popUpTo("${Routes.REGISTER}/$hasAccount") { inclusive = true }
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
                     }
                 },
-                onNavigateBack = if (hasAccount) {
-                    { navController.popBackStack() }
-                } else null,
+                onNavigateBack = {
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo("${Routes.REGISTER}/$hasAccount") { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
                 hasExistingAccount = hasAccount
             )
         }
+
         composable(Routes.LOGIN) {
             LoginScreen(
                 onLoginSuccess = {
                     navController.navigate(Routes.DASHBOARD) {
                         popUpTo(Routes.LOGIN) { inclusive = true }
+                        launchSingleTop = true
                     }
                 },
                 onNoPinSet = {
-                    navController.navigate("${Routes.REGISTER}/false") {
-                        popUpTo(Routes.LOGIN) { inclusive = true }
-                    }
+                    // El LoginViewModel ya muestra un mensaje amigable.
+                    // No navegamos automáticamente al registro para que el botón
+                    // "Registrar negocio" conserve su propósito.
                 },
                 onNewBusiness = {
-                    navController.navigate("${Routes.REGISTER}/true")
+                    navController.navigate("${Routes.REGISTER}/false")
                 }
             )
         }
+
         composable(Routes.DASHBOARD) {
             DashboardScreen(
                 onNavigateToInventory = {
@@ -110,6 +114,7 @@ fun StockLocalNavigation(
                 onExit = { android.os.Process.killProcess(android.os.Process.myPid()) }
             )
         }
+
         composable(
             route = "${Routes.INVENTORY}/{showLowStock}",
             arguments = listOf(
@@ -124,17 +129,20 @@ fun StockLocalNavigation(
                 showLowStock = showLowStock
             )
         }
+
         composable(Routes.MOVEMENTS) {
             MovementScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
+
         composable(Routes.SETTINGS) {
             SettingsScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onAccountDeleted = {
-                    navController.navigate("${Routes.REGISTER}/false") {
+                    navController.navigate(Routes.LOGIN) {
                         popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
                     }
                 }
             )
